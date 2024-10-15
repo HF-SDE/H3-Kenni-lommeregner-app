@@ -6,29 +6,22 @@ import 'package:toastification/toastification.dart';
 class CalculatorViewModel extends ChangeNotifier {
   final CalculatorModel _calculatorModel = CalculatorModel();
 
-  String _display = "0"; // Display value for the calculator
-  double? _firstNumber; // First operand
-  double? _secondNumber; // Second operand
-  String? _operator; // Operator (e.g., +, -, *, /)
-  bool _isNewInput =
-      true; // Flag to check if new input should start after result
   bool _showExplosionGif = false; // Flag to show the explosion GIF
-  //event to show toast
 
   //NOTE: this could be used in the future, to show a toast by emitting an event
   final eventToShowToast = StreamController<String>();
 
-  String get display => _display;
+  String get display => _calculatorModel.display;
   bool get showExplosionGif => _showExplosionGif; // Expose the flag to the view
 
   // Handles number input
   void inputNumber(String number) {
-    if (_isNewInput) {
-      _display = number;
-      _isNewInput =
+    if (_calculatorModel.isNewInput) {
+      _calculatorModel.display = number;
+      _calculatorModel.isNewInput =
           false; // We are in the middle of input, not a new one anymore
     } else {
-      _display += number;
+      _calculatorModel.display += number;
     }
     _showExplosionGif = false; // Reset explosion flag on valid input
     notifyListeners();
@@ -36,30 +29,32 @@ class CalculatorViewModel extends ChangeNotifier {
 
   // Set operator and handle continuous calculations
   void setOperator(String operator) {
-    if (_firstNumber == null) {
-      _firstNumber = double.parse(_display);
-    } else if (_operator != null && !_isNewInput) {
+    if (_calculatorModel.firstNumber == null) {
+      _calculatorModel.firstNumber = double.parse(_calculatorModel.display);
+    } else if (_calculatorModel.operator != null &&
+        !_calculatorModel.isNewInput) {
       // If an operation is in progress, calculate the result with the previous operator
       calculateResult();
-      _firstNumber =
-          double.parse(_display); // Use the result for further calculation
+      _calculatorModel.firstNumber = double.parse(
+          _calculatorModel.display); // Use the result for further calculation
     }
 
-    _operator = operator;
-    _isNewInput = true; // Prepare for new input after operator
+    _calculatorModel.operator = operator;
+    _calculatorModel.isNewInput = true; // Prepare for new input after operator
     notifyListeners();
   }
 
   // Perform the calculation
   void calculateResult() {
-    if (_firstNumber != null && _operator != null) {
-      _secondNumber = double.parse(_display);
+    if (_calculatorModel.firstNumber != null &&
+        _calculatorModel.operator != null) {
+      _calculatorModel.secondNumber = double.parse(_calculatorModel.display);
 
       try {
-        double result = _calculatorModel.calculate(
-            _firstNumber!, _secondNumber!, _operator!);
+        double result = calculate(_calculatorModel.firstNumber!,
+            _calculatorModel.secondNumber!, _calculatorModel.operator!);
 
-        _display = result.toString();
+        _calculatorModel.display = result.toString();
 
         if (result == 69 || result == 80085) {
           // NOTE: this could be used in the future, to show a toast by emitting an event.
@@ -71,18 +66,20 @@ class CalculatorViewModel extends ChangeNotifier {
             type: ToastificationType.success,
           );
         }
-        _firstNumber = result; // Save result for continued operations
-        _secondNumber = null;
-        _isNewInput = true; // Prepare for new input after result
+        _calculatorModel.firstNumber =
+            result; // Save result for continued operations
+        _calculatorModel.secondNumber = null;
+        _calculatorModel.isNewInput =
+            true; // Prepare for new input after result
         _showExplosionGif = false; // No explosion on valid calculations
       } catch (e) {
-        _display = "Error";
+        _calculatorModel.display = "Error";
         if (e.toString().contains("Division by zero")) {
           _showExplosionScreen(); // Trigger explosion screen
         }
-        _firstNumber = null;
-        _secondNumber = null;
-        _operator = null;
+        _calculatorModel.firstNumber = null;
+        _calculatorModel.secondNumber = null;
+        _calculatorModel.operator = null;
       }
       notifyListeners();
     }
@@ -99,13 +96,32 @@ class CalculatorViewModel extends ChangeNotifier {
     });
   }
 
+  double calculate(double num1, double num2, String operator) {
+    switch (operator) {
+      case '+':
+        return num1 + num2;
+      case '-':
+        return num1 - num2;
+      case '*':
+        return num1 * num2;
+      case '/':
+        if (num2 != 0) {
+          return num1 / num2;
+        } else {
+          throw Exception("Division by zero");
+        }
+      default:
+        throw Exception("Unknown operator");
+    }
+  }
+
   // Reset everything (clear)
   void clear() {
-    _display = "0";
-    _firstNumber = null;
-    _secondNumber = null;
-    _operator = null;
-    _isNewInput = true;
+    _calculatorModel.display = "0";
+    _calculatorModel.firstNumber = null;
+    _calculatorModel.secondNumber = null;
+    _calculatorModel.operator = null;
+    _calculatorModel.isNewInput = true;
     _showExplosionGif = false; // Reset explosion flag
     notifyListeners();
   }

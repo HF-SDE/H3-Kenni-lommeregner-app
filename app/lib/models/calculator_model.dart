@@ -1,21 +1,20 @@
+import 'package:uuid/uuid.dart';
+import '/utils/calulatorCommand/command.dart';
+
 class CalculatorModel {
-  // The method that handles calculation based on operator
-  double calculate(double num1, double num2, String operator) {
-    switch (operator) {
-      case '+':
-        return num1 + num2;
-      case '-':
-        return num1 - num2;
-      case '*':
-        return num1 * num2;
-      case '/':
-        if (num2 != 0) {
-          return num1 / num2;
-        } else {
-          throw Exception("Division by zero");
-        }
-      default:
-        throw Exception("Unknown operator");
-    }
+  String id = '';
+  late Calculator calculator;
+  late CalculatorInvoker invoker;
+
+  double? firstNumber;
+  double? secondNumber;
+  String? operator;
+  bool isNewInput = true;
+  String display = "0";
+
+  CalculatorModel() {
+    calculator = Calculator();
+    invoker = CalculatorInvoker(calculator);
+    id = const Uuid().v4();
   }
 }
