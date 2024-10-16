@@ -28,6 +28,10 @@ class Calculator {
       throw Exception('Division by zero');
     }
   }
+
+  void clear() {
+    _currentValue = 0.0;
+  }
 }
 
 // Concrete Command classes

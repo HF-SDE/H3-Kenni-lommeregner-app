@@ -1,128 +1,105 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // For Timer
 import '../models/calculator_model.dart';
-import 'package:toastification/toastification.dart';
+import '/utils/calulatorCommand/command.dart';
 
 class CalculatorViewModel extends ChangeNotifier {
-  final CalculatorModel _calculatorModel = CalculatorModel();
+  final CalculatorModel _model = CalculatorModel();
 
-  bool _showExplosionGif = false; // Flag to show the explosion GIF
+  String get display => _model.display;
+  bool showExplosionGif = false;
 
-  //NOTE: this could be used in the future, to show a toast by emitting an event
-  final eventToShowToast = StreamController<String>();
-
-  String get display => _calculatorModel.display;
-  bool get showExplosionGif => _showExplosionGif; // Expose the flag to the view
-
-  // Handles number input
   void inputNumber(String number) {
-    if (_calculatorModel.isNewInput) {
-      _calculatorModel.display = number;
-      _calculatorModel.isNewInput =
-          false; // We are in the middle of input, not a new one anymore
+    if (_model.isNewInput) {
+      _model.display = number;
+      _model.isNewInput = false;
     } else {
-      _calculatorModel.display += number;
+      _model.display += number;
     }
-    _showExplosionGif = false; // Reset explosion flag on valid input
     notifyListeners();
   }
 
-  // Set operator and handle continuous calculations
   void setOperator(String operator) {
-    if (_calculatorModel.firstNumber == null) {
-      _calculatorModel.firstNumber = double.parse(_calculatorModel.display);
-    } else if (_calculatorModel.operator != null &&
-        !_calculatorModel.isNewInput) {
-      // If an operation is in progress, calculate the result with the previous operator
-      calculateResult();
-      _calculatorModel.firstNumber = double.parse(
-          _calculatorModel.display); // Use the result for further calculation
+    if (_model.firstNumber == null) {
+      _model.firstNumber = double.tryParse(_model.display.replaceAll(",", "."));
+    } else {
+      _model.secondNumber =
+          double.tryParse(_model.display.replaceAll(",", "."));
+      _performCalculation();
     }
-
-    _calculatorModel.operator = operator;
-    _calculatorModel.isNewInput = true; // Prepare for new input after operator
+    _model.operator = operator;
+    _model.isNewInput = true;
     notifyListeners();
   }
 
-  // Perform the calculation
   void calculateResult() {
-    if (_calculatorModel.firstNumber != null &&
-        _calculatorModel.operator != null) {
-      _calculatorModel.secondNumber = double.parse(_calculatorModel.display);
-
-      try {
-        double result = calculate(_calculatorModel.firstNumber!,
-            _calculatorModel.secondNumber!, _calculatorModel.operator!);
-
-        _calculatorModel.display = result.toString();
-
-        if (result == 69 || result == 80085) {
-          // NOTE: this could be used in the future, to show a toast by emitting an event.
-          // eventToShowToast.sink.add("Nice!");
-          toastification.show(
-            style: ToastificationStyle.flatColored,
-            autoCloseDuration: const Duration(seconds: 4),
-            title: const Text("Nice!"),
-            type: ToastificationType.success,
-          );
-        }
-        _calculatorModel.firstNumber =
-            result; // Save result for continued operations
-        _calculatorModel.secondNumber = null;
-        _calculatorModel.isNewInput =
-            true; // Prepare for new input after result
-        _showExplosionGif = false; // No explosion on valid calculations
-      } catch (e) {
-        _calculatorModel.display = "Error";
-        if (e.toString().contains("Division by zero")) {
-          _showExplosionScreen(); // Trigger explosion screen
-        }
-        _calculatorModel.firstNumber = null;
-        _calculatorModel.secondNumber = null;
-        _calculatorModel.operator = null;
-      }
-      notifyListeners();
+    if (_model.firstNumber != null && _model.operator != null) {
+      _model.secondNumber =
+          double.tryParse(_model.display.replaceAll(",", "."));
+      _performCalculation();
+      _model.operator = null;
     }
-  }
-
-  // Method to show explosion screen for 3 seconds and then revert back
-  void _showExplosionScreen() {
-    _showExplosionGif = true;
+    _model.isNewInput = true;
     notifyListeners();
-
-    Timer(Duration(seconds: 2), () {
-      _showExplosionGif = false; // Switch back to calculator
-      notifyListeners(); // Update the UI after the timer finishes
-    });
   }
 
-  double calculate(double num1, double num2, String operator) {
-    switch (operator) {
-      case '+':
-        return num1 + num2;
-      case '-':
-        return num1 - num2;
-      case '*':
-        return num1 * num2;
-      case '/':
-        if (num2 != 0) {
-          return num1 / num2;
-        } else {
-          throw Exception("Division by zero");
-        }
-      default:
-        throw Exception("Unknown operator");
+  void clear() {
+    _model.display = "0";
+    _model.firstNumber = null;
+    _model.secondNumber = null;
+    _model.operator = null;
+    _model.isNewInput = true;
+
+    _model.calculator.clear();
+    notifyListeners();
+  }
+
+  void _performCalculation() {
+    if (_model.operator == null || _model.secondNumber == null) return;
+
+    Command? command;
+
+    // Initialize the calculator's internal currentValue with the firstNumber
+    if (_model.calculator.currentValue == 0.0 && _model.firstNumber != null) {
+      _model.calculator
+          .add(_model.firstNumber!); // Set the first number to current value
+    }
+
+    switch (_model.operator) {
+      case "+":
+        command = AddCommand(_model.calculator, _model.secondNumber!);
+        break;
+      case "-":
+        command = SubtractCommand(_model.calculator, _model.secondNumber!);
+        break;
+      case "*":
+        command = MultiplyCommand(_model.calculator, _model.secondNumber!);
+        break;
+      case "/":
+        command = DivideCommand(_model.calculator, _model.secondNumber!);
+        break;
+    }
+
+    if (command != null) {
+      _model.invoker.compute(command); // Execute the command
+      _model.display = _model.calculator.currentValue.toString();
     }
   }
 
-  // Reset everything (clear)
-  void clear() {
-    _calculatorModel.display = "0";
-    _calculatorModel.firstNumber = null;
-    _calculatorModel.secondNumber = null;
-    _calculatorModel.operator = null;
-    _calculatorModel.isNewInput = true;
-    _showExplosionGif = false; // Reset explosion flag
+  void undoLastOperation() {
+    _model.invoker.undo();
+    _model.display = _model.calculator.currentValue.toString();
+    notifyListeners();
+  }
+
+  void triggerExplosionGif() {
+    showExplosionGif = true;
+    notifyListeners();
+  }
+
+  void deleteLastDigit() {
+    if (_model.display.isNotEmpty) {
+      _model.display = _model.display.substring(0, _model.display.length - 1);
+    }
     notifyListeners();
   }
 }

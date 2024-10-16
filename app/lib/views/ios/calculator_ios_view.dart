@@ -31,15 +31,16 @@ class CalculatorIOSView extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.all(20),
                       child: Text(
-                        viewModel.display,
+                        viewModel.display.replaceAll(".", ","),
                         style: const TextStyle(fontSize: 48),
                       ),
                     ),
                   ),
-                  _buildButtonRow(viewModel, ["7", "8", "9", "/"]),
-                  _buildButtonRow(viewModel, ["4", "5", "6", "*"]),
-                  _buildButtonRow(viewModel, ["1", "2", "3", "-"]),
-                  _buildButtonRow(viewModel, ["0", "C", "=", "+"]),
+                  _buildButtonRow(viewModel, ["Undo", "<-", "-/+", "/"]),
+                  _buildButtonRow(viewModel, ["7", "8", "9", "*"]),
+                  _buildButtonRow(viewModel, ["4", "5", "6", "-"]),
+                  _buildButtonRow(viewModel, ["1", "2", "3", "+"]),
+                  _buildButtonRow(viewModel, ["0", "C", ",", "="]),
                 ],
               ),
       ),
@@ -59,6 +60,10 @@ class CalculatorIOSView extends StatelessWidget {
               viewModel.calculateResult();
             } else if (["+", "-", "*", "/"].contains(buttonText)) {
               viewModel.setOperator(buttonText);
+            } else if (buttonText == "Undo") {
+              viewModel.undoLastOperation();
+            } else if (buttonText == "<-") {
+              viewModel.deleteLastDigit();
             } else {
               viewModel.inputNumber(buttonText);
             }
