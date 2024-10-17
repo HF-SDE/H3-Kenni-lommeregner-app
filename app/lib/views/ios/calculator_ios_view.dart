@@ -2,9 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/calculator_viewmodel.dart';
 import '../../models/calculator_model.dart';
-import '../../viewmodels/main_viewmodel.dart';
 import '../../widgets/share_to_calculator.dart';
-import 'package:toastification/toastification.dart';
 
 class CalculatorIOSView extends StatelessWidget {
   const CalculatorIOSView({super.key, required this.calculator});
@@ -13,15 +11,15 @@ class CalculatorIOSView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CalculatorModel = context.watch<CalculatorViewModel>();
-    final MainModel = context.watch<MainViewModel>();
 
     CalculatorModel.setCalculator(calculator);
 
     return CupertinoApp(
       home: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: Text(calculator.resultFromExternalCalculator.toString() ??
-              "IOS Calculator"),
+          middle: Text(calculator.resultFromExternalCalculator.toString() == ""
+              ? "IOS Calculator"
+              : calculator.resultFromExternalCalculator.toString()),
           trailing: ShareToCalculator(calculator: calculator),
           leading: CupertinoButton(
             padding: EdgeInsets.zero,

@@ -4,6 +4,7 @@ import '/utils/calulatorCommand/command.dart';
 class CalculatorModel {
   late Calculator calculator;
   late CalculatorInvoker invoker;
+
   String id = '';
   String name = '';
   double? firstNumber;

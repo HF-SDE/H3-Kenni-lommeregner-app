@@ -85,6 +85,14 @@ class CalculatorViewModel extends ChangeNotifier {
       _model.hasNewNumber = false;
     }
     _model.isNewInput = true;
+
+    if (_model.calculator.currentValue == 69 ||
+        _model.calculator.currentValue == 80085) {
+      toastification.show(
+        title: Text('Nice!'),
+        autoCloseDuration: const Duration(seconds: 5),
+      );
+    }
     notifyListeners();
   }
 
