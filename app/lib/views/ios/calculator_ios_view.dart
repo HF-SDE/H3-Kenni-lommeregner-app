@@ -1,20 +1,40 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/calculator_viewmodel.dart';
+import '../../models/calculator_model.dart';
+import '../../viewmodels/main_viewmodel.dart';
+import '../../widgets/share_to_calculator.dart';
+import 'package:toastification/toastification.dart';
 
 class CalculatorIOSView extends StatelessWidget {
-  const CalculatorIOSView({super.key});
+  const CalculatorIOSView({super.key, required this.calculator});
+  final CalculatorModel calculator;
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<CalculatorViewModel>();
+    final CalculatorModel = context.watch<CalculatorViewModel>();
+    final MainModel = context.watch<MainViewModel>();
+
+    CalculatorModel.setCalculator(calculator);
 
     return CupertinoApp(
       home: CupertinoPageScaffold(
-        navigationBar: const CupertinoNavigationBar(
-          middle: Text("iOS Calculator"),
+        navigationBar: CupertinoNavigationBar(
+          middle: Text(calculator.resultFromExternalCalculator.toString() ??
+              "IOS Calculator"),
+          trailing: ShareToCalculator(calculator: calculator),
+          leading: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              "Back",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
         ),
-        child: viewModel.showExplosionGif
+        child: CalculatorModel.showExplosionGif
             ? Center(
                 // Show the GIF over the whole screen
                 child: Image.asset(
@@ -31,16 +51,16 @@ class CalculatorIOSView extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.all(20),
                       child: Text(
-                        viewModel.display.replaceAll(".", ","),
+                        CalculatorModel.display.replaceAll(".", ","),
                         style: const TextStyle(fontSize: 48),
                       ),
                     ),
                   ),
-                  _buildButtonRow(viewModel, ["Undo", "<-", "-/+", "/"]),
-                  _buildButtonRow(viewModel, ["7", "8", "9", "*"]),
-                  _buildButtonRow(viewModel, ["4", "5", "6", "-"]),
-                  _buildButtonRow(viewModel, ["1", "2", "3", "+"]),
-                  _buildButtonRow(viewModel, ["0", "C", ",", "="]),
+                  _buildButtonRow(CalculatorModel, ["Undo", "<-", "-/+", "/"]),
+                  _buildButtonRow(CalculatorModel, ["7", "8", "9", "*"]),
+                  _buildButtonRow(CalculatorModel, ["4", "5", "6", "-"]),
+                  _buildButtonRow(CalculatorModel, ["1", "2", "3", "+"]),
+                  _buildButtonRow(CalculatorModel, ["0", "C", ",", "="]),
                 ],
               ),
       ),

@@ -115,6 +115,10 @@ class CalculatorInvoker {
     _commandHistory.add(command);
   }
 
+  void clearHistory() {
+    _commandHistory.clear();
+  }
+
   void undo() {
     if (_commandHistory.isNotEmpty) {
       var command = _commandHistory.removeLast();

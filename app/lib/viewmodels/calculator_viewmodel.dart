@@ -1,42 +1,88 @@
 import 'package:flutter/material.dart';
 import '../models/calculator_model.dart';
 import '/utils/calulatorCommand/command.dart';
+import 'package:toastification/toastification.dart';
 
 class CalculatorViewModel extends ChangeNotifier {
-  final CalculatorModel _model = CalculatorModel();
+  late CalculatorModel _model;
 
   String get display => _model.display;
   bool showExplosionGif = false;
 
+  void setCalculator(CalculatorModel calculator) {
+    _model = calculator;
+  }
+
+  void setInputFromExternal() {
+    inputNumber(_model.resultFromExternalCalculator.toString());
+  }
+
   void inputNumber(String number) {
+    // Prevent adding more than one decimal point per input
+    if (number == "." && _model.display.contains(".")) {
+      return;
+    }
+
     if (_model.isNewInput) {
-      _model.display = number;
+      if (number == ".") {
+        _model.display = "0.";
+      } else {
+        _model.display = number;
+      }
       _model.isNewInput = false;
     } else {
       _model.display += number;
     }
+
+    // Indicate that a new number has been input
+    _model.hasNewNumber = true;
+
     notifyListeners();
   }
 
   void setOperator(String operator) {
-    if (_model.firstNumber == null) {
-      _model.firstNumber = double.tryParse(_model.display.replaceAll(",", "."));
-    } else {
-      _model.secondNumber =
-          double.tryParse(_model.display.replaceAll(",", "."));
-      _performCalculation();
+    // Ensure that an operator can only be set if a number has been input
+    if (_model.display == null ||
+        _model.display.isEmpty ||
+        _model.display == "0") {
+      return;
     }
+
+    // Perform calculation only if a new number has been entered after the last operation
+    if (_model.hasNewNumber) {
+      double? currentNumber =
+          double.tryParse(_model.display.replaceAll(",", "."));
+
+      if (currentNumber == null) {
+        return;
+      }
+
+      if (_model.firstNumber == null) {
+        _model.firstNumber = currentNumber;
+      } else {
+        _model.secondNumber = currentNumber;
+        _performCalculation();
+        _model.firstNumber = _model.calculator.currentValue;
+      }
+
+      _model.hasNewNumber = false; // Reset the flag after using the new number
+    }
+
     _model.operator = operator;
     _model.isNewInput = true;
     notifyListeners();
   }
 
   void calculateResult() {
-    if (_model.firstNumber != null && _model.operator != null) {
+    if (_model.firstNumber != null &&
+        _model.operator != null &&
+        _model.hasNewNumber) {
       _model.secondNumber =
           double.tryParse(_model.display.replaceAll(",", "."));
       _performCalculation();
+      _model.firstNumber = _model.calculator.currentValue;
       _model.operator = null;
+      _model.hasNewNumber = false;
     }
     _model.isNewInput = true;
     notifyListeners();
@@ -48,8 +94,10 @@ class CalculatorViewModel extends ChangeNotifier {
     _model.secondNumber = null;
     _model.operator = null;
     _model.isNewInput = true;
+    _model.hasNewNumber = false;
 
     _model.calculator.clear();
+    _model.invoker.clearHistory();
     notifyListeners();
   }
 
@@ -96,9 +144,18 @@ class CalculatorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void shareResultToExternalCalculator(Calculator calculator) {
+    _model.resultFromExternalCalculator = _model.calculator.currentValue;
+    notifyListeners();
+  }
+
   void deleteLastDigit() {
     if (_model.display.isNotEmpty) {
       _model.display = _model.display.substring(0, _model.display.length - 1);
+      if (_model.display.isEmpty) {
+        _model.display = "0";
+        _model.isNewInput = true;
+      }
     }
     notifyListeners();
   }
