@@ -1,17 +1,19 @@
 import 'package:app/viewmodels/main_viewmodel.dart';
+import 'package:app/views/main_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/calculator_viewmodel.dart';
 import 'package:toastification/toastification.dart';
-import 'views/platform_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _isColdStart = true;
 
   @override
@@ -65,7 +67,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _showToast(String message) {
     toastification.show(
       title: Text(message),
-      autoCloseDuration: Duration(seconds: 2),
+      autoCloseDuration: const Duration(seconds: 2),
       type: ToastificationType.info,
     );
   }
@@ -77,6 +79,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       ChangeNotifierProvider(
           create: (_) =>
               CalculatorViewModel()), // Ensure the ViewModel is provided
-    ], child: ToastificationWrapper(child: PlatformView()));
+    ], child: const ToastificationWrapper(child: MainView()));
   }
 }

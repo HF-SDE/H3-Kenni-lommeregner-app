@@ -9,17 +9,25 @@ class CalculatorViewModel extends ChangeNotifier {
   String get display => _model.display;
   bool showExplosionGif = false;
 
+  //getter for the operator
+  String? get operator => _model.operator;
+  String? get resultFromExternalCalculator =>
+      _model.resultFromExternalCalculator.toString();
+
   void setCalculator(CalculatorModel calculator) {
     _model = calculator;
   }
 
   void setInputFromExternal() {
-    inputNumber(_model.resultFromExternalCalculator.toString());
+    _model.display = "";
+    inputNumber(resultFromExternalCalculator.toString());
+    _model.resultFromExternalCalculator = null;
+    notifyListeners();
   }
 
   void inputNumber(String number) {
     // Prevent adding more than one decimal point per input
-    if (number == "." && _model.display.contains(".")) {
+    if (number == "," && _model.display.contains(",")) {
       return;
     }
 
@@ -42,9 +50,7 @@ class CalculatorViewModel extends ChangeNotifier {
 
   void setOperator(String operator) {
     // Ensure that an operator can only be set if a number has been input
-    if (_model.display == null ||
-        _model.display.isEmpty ||
-        _model.display == "0") {
+    if (_model.display.isEmpty || _model.display == "0") {
       return;
     }
 
@@ -89,7 +95,7 @@ class CalculatorViewModel extends ChangeNotifier {
     if (_model.calculator.currentValue == 69 ||
         _model.calculator.currentValue == 80085) {
       toastification.show(
-        title: Text('Nice!'),
+        title: const Text('Nice!'),
         autoCloseDuration: const Duration(seconds: 5),
       );
     }
@@ -131,7 +137,11 @@ class CalculatorViewModel extends ChangeNotifier {
         command = MultiplyCommand(_model.calculator, _model.secondNumber!);
         break;
       case "/":
-        command = DivideCommand(_model.calculator, _model.secondNumber!);
+        if (_model.secondNumber != 0) {
+          command = DivideCommand(_model.calculator, _model.secondNumber!);
+        } else {
+          triggerExplosionGif();
+        }
         break;
     }
 
@@ -149,6 +159,20 @@ class CalculatorViewModel extends ChangeNotifier {
 
   void triggerExplosionGif() {
     showExplosionGif = true;
+    notifyListeners();
+    Future.delayed(const Duration(seconds: 2), () {
+      showExplosionGif = false;
+      notifyListeners();
+    });
+  }
+
+  //function for making the current display number positive or nigative
+  void makeNumberPositiveOrNegative() {
+    if (_model.display.startsWith("-")) {
+      _model.display = _model.display.substring(1);
+    } else {
+      _model.display = "-${_model.display}";
+    }
     notifyListeners();
   }
 

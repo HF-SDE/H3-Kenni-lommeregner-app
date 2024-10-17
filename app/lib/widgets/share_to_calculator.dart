@@ -7,7 +7,7 @@ import '../viewmodels/main_viewmodel.dart';
 class ShareToCalculator extends StatefulWidget {
   final CalculatorModel calculator;
 
-  ShareToCalculator({required this.calculator});
+  const ShareToCalculator({super.key, required this.calculator});
 
   @override
   ShareToCalculatorState createState() => ShareToCalculatorState();
@@ -74,6 +74,7 @@ class ShareToCalculatorState extends State<ShareToCalculator> {
                   isDefaultAction: true,
                   onPressed: () {
                     shareResultWithSelectedCalculator();
+                    Navigator.pop(context);
                   },
                   child: const Text('Send Result'),
                 ),
