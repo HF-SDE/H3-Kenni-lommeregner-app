@@ -42,53 +42,56 @@ class ShareToCalculatorState extends State<ShareToCalculator> {
       }
     }
 
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      child: const Text("Share"),
-      onPressed: () {
-        showCupertinoDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return CupertinoActionSheet(
-              title: const Text('Select Calculator to Share'),
-              actions: <Widget>[
-                SizedBox(
-                  height: 200, // Limit the height for picker
-                  child: CupertinoPicker(
-                    itemExtent: 32.0,
-                    onSelectedItemChanged: (int index) {
-                      setState(() {
-                        selectedCalculatorId = mainModel.calculators[index].id;
-                      });
-                    },
-                    children: mainModel.calculators
-                        .where((calc) => calc.id != widget.calculator.id)
-                        .map((calc) =>
-                            Text(calc.name == "" ? calc.id : calc.name))
-                        .toList(),
-                  ),
-                ),
-                CupertinoActionSheetAction(
-                  /// This parameter indicates the action would be a default
-                  /// default behavior, turns the action's text to bold text.
-                  isDefaultAction: true,
-                  onPressed: () {
-                    shareResultWithSelectedCalculator();
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Send Result'),
-                ),
-              ],
-              cancelButton: CupertinoActionSheetAction(
-                child: const Text('Cancel'),
-                onPressed: () {
-                  Navigator.pop(context);
+    return mainModel.calculators.length > 1
+        ? CupertinoButton(
+            padding: EdgeInsets.zero,
+            child: const Text("Share"),
+            onPressed: () {
+              showCupertinoDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return CupertinoActionSheet(
+                    title: const Text('Select Calculator to Share'),
+                    actions: <Widget>[
+                      SizedBox(
+                        height: 200, // Limit the height for picker
+                        child: CupertinoPicker(
+                          itemExtent: 32.0,
+                          onSelectedItemChanged: (int index) {
+                            setState(() {
+                              selectedCalculatorId =
+                                  mainModel.calculators[index].id;
+                            });
+                          },
+                          children: mainModel.calculators
+                              .where((calc) => calc.id != widget.calculator.id)
+                              .map((calc) =>
+                                  Text(calc.name == "" ? calc.id : calc.name))
+                              .toList(),
+                        ),
+                      ),
+                      CupertinoActionSheetAction(
+                        /// This parameter indicates the action would be a default
+                        /// default behavior, turns the action's text to bold text.
+                        isDefaultAction: true,
+                        onPressed: () {
+                          shareResultWithSelectedCalculator();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Send Result'),
+                      ),
+                    ],
+                    cancelButton: CupertinoActionSheetAction(
+                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
                 },
-              ),
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          )
+        : const SizedBox.shrink();
   }
 }

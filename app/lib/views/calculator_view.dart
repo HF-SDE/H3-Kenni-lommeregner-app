@@ -21,9 +21,7 @@ class CalculatorView extends StatelessWidget {
       darkTheme: ThemeData.dark(),
       home: Scaffold(
         appBar: AppBar(
-          title: Text(calculator.resultFromExternalCalculator.toString() == ""
-              ? "iOS Calculator"
-              : calculator.resultFromExternalCalculator.toString()),
+          title: Text(calculator.name == "" ? calculator.id : calculator.name),
           actions: [
             ShareToCalculator(calculator: calculator),
           ],
