@@ -24,6 +24,9 @@ class ShareToCalculatorState extends State<ShareToCalculator> {
   @override
   Widget build(BuildContext context) {
     final mainModel = context.watch<MainViewModel>();
+    final otherCalculators = mainModel.calculators
+        .where((calc) => calc.id != widget.calculator.id)
+        .toList();
 
     //if list of calculators (excluding current calculator) is not empty, set selectedCalculatorId to the first calculator id
     if (mainModel.calculators.length > 1) {
@@ -59,12 +62,15 @@ class ShareToCalculatorState extends State<ShareToCalculator> {
                           itemExtent: 32.0,
                           onSelectedItemChanged: (int index) {
                             setState(() {
-                              selectedCalculatorId =
-                                  mainModel.calculators[index].id;
+                              try {
+                                selectedCalculatorId =
+                                    otherCalculators[index].id;
+                              } catch (e) {
+                                print(e);
+                              }
                             });
                           },
-                          children: mainModel.calculators
-                              .where((calc) => calc.id != widget.calculator.id)
+                          children: otherCalculators
                               .map((calc) =>
                                   Text(calc.name == "" ? calc.id : calc.name))
                               .toList(),
